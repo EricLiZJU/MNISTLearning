@@ -7,6 +7,8 @@ from torchvision import datasets
 import torch.nn.functional as F
 import time
 
+device = torch.device("mps")
+
 # super parameters
 batch_size = 64
 learning_rate = 0.01
@@ -58,10 +60,10 @@ class Net(torch.nn.Module):
         x = self.fc(x)
         return x
 
-model = Net()
+model = Net().to(device)
 
 # loss and optimizer
-criterion = torch.nn.CrossEntropyLoss()
+criterion = torch.nn.CrossEntropyLoss().to(device)
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
 
 # train and test
@@ -70,6 +72,7 @@ def train(epoch):
     running_total = 0
     running_correct = 0
     for batch_idx, (inputs, targets) in enumerate(train_loader, 0):
+        inputs, targets = inputs.to(device), targets.to(device)
         start = time.time()
         optimizer.zero_grad()
 
@@ -97,6 +100,7 @@ def test(epoch):
     with torch.no_grad():
         for data in test_loader:
             images, labels = data
+            images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, dim=1)
             total += labels.size(0)
